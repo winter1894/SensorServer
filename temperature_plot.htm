@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			body {
+				background-color: linen;
+			}
+			text {
+				text-align: right;
+				font-weight: bold;
+				vertical-align: middle;
+				height: 100%;
+			}
+		</style>
+		<title>Pi TPA Sensor</title>
+   		<meta name="description" content="Plot of temperature from DS18B20 sensor connected to Raspberry Pi">
+   		<meta name="author" content="Matthew Winter, Devin Pacheco, Stanley Wang">
+   		<meta name="version" content="0.1">
+		<script src="http://code.jquery.com/jquery-1.8.3.min.js" type="text/javascript"></script>
+		<script src="http://code.highcharts.com/highcharts.js" type="text/javascript"></script>
+		 <!-- Compiled and minified CSS -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
+		<!-- Compiled and minified JavaScript -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
+		
+		
+		
+		
+		<script type="text/javascript">
+		
+		var chart1; // global chart variable
+		var chart2; // global chart variable
+		var chart3; // global chart variable
+
+		// Get data from Pi NodeJS server
+		function getData_temp(){
+			$.getJSON('./temperature_now.json', function(data) {
+            //alert(data.unix_time);
+				// Create the series
+				var series  = chart1.series[0],
+					shift = series.data.length > 37; // shift if the series longer than 20
+				// Add the point
+				chart1.series[0].addPoint([data.temperature_record[0].unix_time, data.temperature_record[0].fahrenheit], true, shift);
+				// Repeat this function call after 1 second
+				setTimeout(getData_temp, 1000);
+
+
+				// Create the series2
+				var series2  = chart2.series[0],
+					shift = series2.data.length > 37; // shift if the series longer than 20
+				// Add the point
+				chart2.series[0].addPoint([data.pressure_record[0].unix_time, data.pressure_record[0].kPa], true, shift);
+				
+				
+				// Create the series3
+				var series3  = chart3.series[0],
+					shift = series3.data.length > 37; // shift if the series longer than 20
+				// Add the point
+				chart3.series[0].addPoint([data.altitude_record[0].unix_time, data.altitude_record[0].meters], true, shift);
+
+				
+				//Trying to print out value to server as digital value
+				document.getElementById("text1").innerHTML = "Temperature = " + data.temperature_record[0].fahrenheit + "\u00B0F"; //we are at 217ft, 66 meters in Kelley Lab
+				//added 6 to altitude to adjust slight error
+				document.getElementById("text2").innerHTML = "Air Pressure = " + data.pressure_record[0].kPa + " kPa";
+				document.getElementById("text3").innerHTML = "Altitude = " + data.altitude_record[0].meters + " m above sea level"; //we are at 217ft, 66 meters in Kelley Lab
+				//this one isn't working?
+				//document.getElementById("text").innerHTML = "You are " + data.altitude_record[0].meters + " meters above sea level.";
+				
+				});
+			}
+		
+
+	</script>
+
+	<script type="text/javascript">
+   // Configure the plot
+
+	$(document).ready(function() {
+	   chart1 = new Highcharts.Chart({
+		chart: {
+		    renderTo: 'container1',
+		    defaultSeriesType: 'spline',
+		    borderColor: 'rgb(168,168,168)',
+		    borderWidth: 3,
+		    events: {
+		        load: getData_temp
+		    }
+		},
+		title: {
+		    text: 'Raspberry Pi Temperature Plot'
+		},
+		xAxis: {
+		    type: 'datetime',
+		    tickPixelInterval: 150,
+		    maxZoom: 20 * 2000,
+		    title: {
+			   text: 'Time (sensor called at one second intervals)',
+			   margin: 15
+			}
+		},
+		yAxis: {
+		    minPadding: 0.2,
+		    maxPadding: 0.2,
+		    title: {
+		        text: 'Temperature (\u00B0F)',
+		        margin: 15
+		    }
+		},
+		legend: {
+			layout: 'vertical',
+			floating: true,
+			align: 'left',
+			x: 330,
+			verticalAlign: 'top',
+			y: 35   
+		},
+		series: [{
+		    name: 'BMP180 Temperature (\u00B1 0.9\u00B0F)',
+		    color: '#FF0000',
+		    data: []
+		}]
+
+	    });        
+	});
+	
+		$(document).ready(function() {
+	   chart2 = new Highcharts.Chart({
+		chart: {
+		    renderTo: 'container2',
+		    defaultSeriesType: 'spline',
+		    borderColor: 'rgb(168,168,168)',
+		    borderWidth: 3,
+		    events: {
+		        load: getData_temp
+		    }
+		},
+		title: {
+		    text: 'Raspberry Pi Air Pressure Plot'
+		},
+		xAxis: {
+		    type: 'datetime',
+		    tickPixelInterval: 150,
+		    maxZoom: 20 * 2000,
+		    title: {
+			   text: 'Time (sensor called at one second intervals)',
+			   margin: 15
+			}
+		},
+		yAxis: {
+		    minPadding: 0.2,
+		    maxPadding: 0.2,
+		    title: {
+		        text: 'Pressure (kPa)',
+		        margin: 15
+		    }
+		},
+		legend: {
+			layout: 'vertical',
+			floating: true,
+			align: 'left',
+			x: 330,
+			verticalAlign: 'top',
+			y: 35   
+		},
+		series: [{
+		    name: 'BMP180 Pressure (\u00B1 0.012kPa)',
+		    color: '#00F500',
+		    data: []
+		}]
+
+	    });        
+	});
+	
+		$(document).ready(function() {
+	   chart3 = new Highcharts.Chart({
+		chart: {
+		    renderTo: 'container3',
+		    defaultSeriesType: 'spline',
+		    borderColor: 'rgb(168,168,168)',
+		    borderWidth: 3,
+		    events: {
+		        load: getData_temp
+		    }
+		},
+		title: {
+		    text: 'Raspberry Pi Altitude Plot'
+		},
+		xAxis: {
+		    type: 'datetime',
+		    tickPixelInterval: 150,
+		    maxZoom: 20 * 2000,
+		    title: {
+			   text: 'Time (sensor called at one second intervals)',
+			   margin: 15
+			}
+		},
+		yAxis: {
+		    minPadding: 0.2,
+		    maxPadding: 0.2,
+		    title: {
+		        text: 'Altitude (m)',
+		        margin: 15
+		    }
+		},
+		legend: {
+			layout: 'vertical',
+			floating: true,
+			align: 'left',
+			x: 380,
+			verticalAlign: 'top',
+			y: 35   
+		},
+		series: [{
+		    name: 'BMP180 Altitude (\u00B1 1m)',
+		    color: '#0000FF',
+		    data: []
+		}]
+
+	    });        
+	});
+	
+
+
+	</script>			
+	</head>
+	<body>
+		<div class="container" style="padding: 0px !important; width: 75%">
+			<div class="row">
+				<div class="col m8 ">
+					<div id="container1" style="height: 300px"></div>
+					<div id="container2" style="height: 300px"></div>
+					<div id="container3" style="height: 300px"></div>
+				</div>
+				<div class= "col m4">
+					<text>
+						<div id="text1" style="color:#FF0000; height: 300px"></div>
+						<div id="text2" style="color:#00F500; height: 300px"></div>
+						<div id="text3" style="color:#0000FF; height: 300px"></div>
+					</text>
+				</div>
+			</div>	
+		</div>
+	</body>
+</html>
